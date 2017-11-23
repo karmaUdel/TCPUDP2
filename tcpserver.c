@@ -120,7 +120,8 @@ int main(void) {
       }
 
       /* close the socket */
-	  
+      close(sock_connection);
+
 	  }
    } 
 

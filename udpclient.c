@@ -264,7 +264,7 @@ int main(void) {
 		message.server_secret_code = ntohs(receivedMessage.server_secret_code);
 		message.client_secret_code = ntohs(receivedMessage.client_secret_code);		
    }
-   writeToFile(message,receivedMessage);
+   //writeToFile(message,receivedMessage);
     // save and close
   /*
   * -------------------------------------------------UDP Client Ends Here --------------------------------------------------------*

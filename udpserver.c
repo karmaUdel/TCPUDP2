@@ -136,7 +136,7 @@ int main(void) {
 			strcpy(message.name,Name);
 			//write here
 			printf("writing to file now");
-			writeToFile(message,receivedMessage);
+			//writeToFile(message,receivedMessage);
 	  }
 	  else{
 	  /* make incorrect message */
@@ -148,5 +148,6 @@ int main(void) {
 	  
 	  bytes_sent = sendto(sock_server, &message, sizeof(struct Messages), 0,
                (struct sockaddr*) &client_addr, client_addr_len);
+	  close(sock_server);
    }
 }
