@@ -9,6 +9,7 @@
 #include <sys/socket.h>     /* for socket, sendto, and recvfrom */
 #include <netinet/in.h>     /* for sockaddr_in */
 #include <unistd.h>         /* for close */
+#include <errno.h>			/* returns error number on errors*/
 
 #define STRING_SIZE 1024
 #define Secret_Code 4747
@@ -23,7 +24,7 @@ void writeToFile(struct Messages message,struct Messages receivedMessage){
   FILE * fp;
    int i;
    /* open the file for writing*/
-   fp = fopen ("c:\\temp\\clientInfo.txt","a");
+   fp = fopen ("/clientInfo.txt","a+");
  
    /* write 10 lines of text into the file stream*/
        fprintf (fp, "------------------\n");
@@ -47,7 +48,7 @@ int cfileexists(const char * filename){
     }
     return 0;
 }
-int main(void) {
+int client(unsigned short server_port) {
 
    int sock_client;  /* Socket used by client */ 
 
@@ -73,7 +74,7 @@ int main(void) {
 	* then this field will be changed to some intermediate port number [48000-48999], and client will try to connect all ports which has 
 	* server running on them
 	*/
-   unsigned short server_port = 48500;  /* Port number used by server (remote port) */
+   //unsigned short server_port = 48500;  /* Port number used by server (remote port) */
    char sentence[STRING_SIZE];  /* send message */
    char modifiedSentence[STRING_SIZE]; /* receive message */
    unsigned int msg_len;  /* length of message */
@@ -90,7 +91,8 @@ int main(void) {
 
    if ((sock_client = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0) {
       perror("Client: can't open stream socket");
-      exit(1);
+	  return errno;
+      //exit(1);
    }
 
 
@@ -107,7 +109,8 @@ int main(void) {
    if ((server_hp = gethostbyname(server_hostname)) == NULL) {
       perror("Client: invalid server hostname");
       close(sock_client);
-      exit(1);
+      return errno;
+      //exit(1);
    }
       server_port = 48500; 
    /* Clear server address structure and initialize with server address */
@@ -124,7 +127,8 @@ int main(void) {
                                     sizeof (server_addr)) < 0) {
       perror("Client: can't connect to server");
       close(sock_client);
-      exit(1);
+      return errno;
+      //exit(1);
    }
 
    
@@ -182,7 +186,8 @@ int main(void) {
    
       if ((sock_client = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0) {
       perror("Client: can't open datagram socket\n");
-      exit(1);
+      return errno;
+      //exit(1);
    }
 
    /* Note: there is no need to initialize local client address information
@@ -218,7 +223,8 @@ int main(void) {
                                     sizeof (client_addr)) < 0) {
       perror("Client: can't bind to local address\n");
       close(sock_client);
-      exit(1);
+	  return errno;
+      //exit(1);
    }
 
    /* end of local address initialization and binding */
@@ -230,7 +236,8 @@ int main(void) {
    if ((server_hp = gethostbyname(server_hostname)) == NULL) {
       perror("Client: invalid server hostname\n");
       close(sock_client);
-      exit(1);
+	  return errno;
+      //exit(1);
    }
    //printf("Enter port number for server: ");
    //scanf("%hu", &server_port);
@@ -271,5 +278,14 @@ int main(void) {
   */
   /* close socket*/
   close (sock_client);
-
+  return 0;
+}
+int main(void){
+  unsigned short i = 48000;
+  for(;i<49000;i++){
+	if(client(i)!=0){
+		printf("error occur on port %d\n",i);
+	}
+  }
+  return 0;
 }
