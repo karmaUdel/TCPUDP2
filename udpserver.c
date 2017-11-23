@@ -32,8 +32,16 @@ void writeToFile(struct Messages message,struct Messages receivedMessage){
   FILE * fp;
    int i;
    /* open the file for writing*/
-   fp = fopen ("c:\\temp\\serverInfo.txt","a");
- 
+   char cwd[1024];
+   if (getcwd(cwd, sizeof(cwd)) != NULL)
+       fprintf(stdout, "Current working dir: %s\n", cwd);
+   else
+       perror("getcwd() error");
+	char file[1024];   
+	snprintf(file,sizeof(file),"%s%s",cwd,"/serverInfo.txt");
+	//fprintf(stdout,"file is %s\n",pwd);
+   fp = fopen (file,"a+");
+
    /* write 10 lines of text into the file stream*/
        fprintf (fp, "------------------\n");
 	   fprintf (fp, "Port Number  %d\n",i); // this is port number
@@ -136,7 +144,7 @@ int main(void) {
 			strcpy(message.name,Name);
 			//write here
 			printf("writing to file now");
-			//writeToFile(message,receivedMessage);
+			writeToFile(message,receivedMessage);
 	  }
 	  else{
 	  /* make incorrect message */

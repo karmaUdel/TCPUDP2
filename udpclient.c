@@ -20,15 +20,23 @@ struct Messages {
    unsigned short server_secret_code;
    char  name[80];
 };
-void writeToFile(struct Messages message,struct Messages receivedMessage){
+void writeToFile(unsigned short port,struct Messages message,struct Messages receivedMessage){
   FILE * fp;
-   int i;
+   //int i;
    /* open the file for writing*/
-   fp = fopen ("/clientInfo.txt","a+");
+   char cwd[1024];
+   if (getcwd(cwd, sizeof(cwd)) != NULL)
+       fprintf(stdout, "Current working dir: %s\n", cwd);
+   else
+       perror("getcwd() error");
+	char file[1024];   
+	snprintf(file,sizeof(file),"%s%s",cwd,"/clientInfo.txt");
+	//fprintf(stdout,"file is %s\n",pwd);
+   fp = fopen (file,"a+");
  
    /* write 10 lines of text into the file stream*/
        fprintf (fp, "------------------\n");
-	   fprintf (fp, "Port Number  %d\n",i); // this is port number
+	   fprintf (fp, "Port Number  %d\n",port); // this is port number
    	   fprintf (fp, "TCP Message sent:\t   %d\n",message.client_secret_code); // this is port number
 	   fprintf (fp, "TCP Message received:  %d, %d\n",receivedMessage.client_secret_code,receivedMessage.server_secret_code);
    	   fprintf (fp, "UDP Message sent:\t   %d, %d, %s\n",message.client_secret_code,message.server_secret_code,message.name); // this is port number
@@ -271,7 +279,7 @@ int client(unsigned short server_port) {
 		message.server_secret_code = ntohs(receivedMessage.server_secret_code);
 		message.client_secret_code = ntohs(receivedMessage.client_secret_code);		
    }
-   //writeToFile(message,receivedMessage);
+   writeToFile(server_port,message,receivedMessage);
     // save and close
   /*
   * -------------------------------------------------UDP Client Ends Here --------------------------------------------------------*
