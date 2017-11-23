@@ -53,7 +53,7 @@ int main(void) {
 
    struct sockaddr_in client_addr;  /* Internet address structure that
                                         stores client address */
-   unsigned short client_port;  /* Port number used by client (local port) */
+   unsigned short client_port = 0;  /* Port number used by client (local port) */
 
    struct sockaddr_in server_addr;  /* Internet address structure that
                                         stores server address */
@@ -78,7 +78,7 @@ int main(void) {
    char modifiedSentence[STRING_SIZE]; /* receive message */
    unsigned int msg_len;  /* length of message */
    int bytes_sent, bytes_recd; /* number of bytes sent or received */
-   //unsigned short client_secret_code; /*this holds client secret code in short format*/
+   unsigned short client_secret_code = Secret_Code; /*this holds client secret code in short format*/
    //unsigned char client_code[2]; /*this holds client secret code in char format _ this field is used in message construction in tcp and udp message*/
    //unsigned short server_secret_code; /*this holds Server secret code in short format sent by tcp server*/
    //unsigned char server_code[2]; /*this holds server secret code in char format _ this field is used in message construction - the udp message*/
@@ -102,6 +102,22 @@ int main(void) {
             already been bound. */
 
    /* initialize server address information */
+	printf("initializing");
+   //server_hostname = "localhost";
+   if ((server_hp = gethostbyname(server_hostname)) == NULL) {
+      perror("Client: invalid server hostname");
+      close(sock_client);
+      exit(1);
+   }
+      server_port = 48500; 
+   /* Clear server address structure and initialize with server address */
+   memset(&server_addr, 0, sizeof(server_addr));
+   server_addr.sin_family = AF_INET;
+   memcpy((char *)&server_addr.sin_addr, server_hp->h_addr,
+                                    server_hp->h_length);
+   server_addr.sin_port = htons(server_port);
+   /* initialize server address information */
+
 
    
    if (connect(sock_client, (struct sockaddr *) &server_addr, 
@@ -110,31 +126,9 @@ int main(void) {
       close(sock_client);
       exit(1);
    }
-   //server_hostname = "localhost";
-   if ((server_hp = gethostbyname(server_hostname)) == NULL) {
-      perror("Client: invalid server hostname");
-      close(sock_client);
-      exit(1);
-   }
 
-   server_port = 48500; 
-   /* Clear server address structure and initialize with server address */
-   memset(&server_addr, 0, sizeof(server_addr));
-   server_addr.sin_family = AF_INET;
-   memcpy((char *)&server_addr.sin_addr, server_hp->h_addr,
-                                    server_hp->h_length);
-   server_addr.sin_port = htons(server_port);
-
-
-
-   /* initialize server address information */
-
-
-   /* Clear server address structure and initialize with server address */
-
-   /* user interface */
    
-   message.client_secret_code = htons(Secret_Code);
+   message.client_secret_code = htons(client_secret_code);
    message.server_secret_code = 0; // we don't know the secret code so send 0;
    message.name[0] = '\0'; // empty name field 
    /* make message */
@@ -250,7 +244,7 @@ int main(void) {
    // get message length
    // message was created before closing the tcpclient 
    // so just send the message.
-   message.client_secret_code = htons(Secret_Code);
+   message.client_secret_code = htons(client_secret_code);
    message.server_secret_code = htons(message.server_secret_code);
    strcpy(message.name, Name);
    /* send message */
@@ -265,7 +259,7 @@ int main(void) {
 	
    // Now decode the message
    // of secret code is matched
-   if(Secret_Code == ntohs(receivedMessage.client_secret_code)){
+   if(client_secret_code == ntohs(receivedMessage.client_secret_code)){
         strcpy(message.name, receivedMessage.name);
 		message.server_secret_code = ntohs(receivedMessage.server_secret_code);
 		message.client_secret_code = ntohs(receivedMessage.client_secret_code);		

@@ -45,7 +45,7 @@ int main(void) {
    int bytes_sent, bytes_recd; /* number of bytes sent or received */
    unsigned int i;  /* temporary loop variable */
    unsigned short client_secret_code;
-   //unsigned char server_secret_code[2];
+   unsigned short server_secret_code = Secret_Code;
    //unsigned char client_code[2]; // this will hold 2 byte client_secret_code
     struct Messages message; // this is structure that holds message sent by server
 	struct Messages receivedMessage; // this is a structure that holds message received from client
@@ -108,7 +108,7 @@ int main(void) {
 	
       if (bytes_recd > 0){
         /* prepare the message to send */
-		 message.server_secret_code = htons(Secret_Code);
+		 message.server_secret_code = htons(server_secret_code);
          client_secret_code = ntohs(receivedMessage.client_secret_code);
 		 printf("Client Secret code %d",client_secret_code);
 		 /* send message */

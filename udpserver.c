@@ -66,7 +66,7 @@ int main(void) {
    int bytes_sent, bytes_recd; /* number of bytes sent or received */
    unsigned int i;  /* temporary loop variable */
 //   unsigned char message[STRING_SIZE]; // this is message that server will send
-   unsigned short server_secret_code; // this will hold secret_code received from client in communication
+   unsigned short server_secret_code = Secret_Code; // this will hold secret_code received from client in communication
    unsigned short client_secret_code; // this will hold client's secret_code received from Client in communication   
 //   unsigned char client_code[2]; // this will hold 2 byte client_secret_code
 //   unsigned char server_code[2]; // this will hold 2 byte server_secret_code
@@ -124,17 +124,18 @@ int main(void) {
 	   * check secret code
 	   */
       server_secret_code = ntohs(receivedMessage.server_secret_code);
-	  client_secret_code - ntohs(receivedMessage.client_secret_code);
+	  client_secret_code = ntohs(receivedMessage.client_secret_code);
 	  printf("client_code %d\n",client_secret_code);
 	  printf("server_code %d\n",server_secret_code);
 	  printf("client_name %s\n",receivedMessage.name);
 	  
-	  if(server_secret_code == Secret_Code){
+	  if(server_secret_code == server_secret_code){
       /* make correct message */
 			message.client_secret_code = htons(client_secret_code);
-			message.server_secret_code = htons(Secret_Code);
+			message.server_secret_code = htons(server_secret_code);
 			strcpy(message.name,Name);
 			//write here
+			printf("writing to file now");
 			writeToFile(message,receivedMessage);
 	  }
 	  else{
