@@ -22,12 +22,16 @@
 #define Name "Aditya-Karmarkar"
 
 
+/**
+ * this is structure for message
+ */
 struct Messages {
    unsigned short client_secret_code;
    unsigned short server_secret_code;
    unsigned short name_size;
    char  name[80];
 };
+static const struct Messages EmptyMessage;
 
 void writeToFile(struct Messages message,struct Messages receivedMessage){
   FILE * fp;
@@ -116,8 +120,7 @@ int main(void) {
    */
    for (;;) {
 
-      bytes_recd = recvfrom(sock_server, &receivedMessage, sizeof( struct Messages), 0,
-                     (struct sockaddr *) &client_addr, &client_addr_len);
+      bytes_recd = recvfrom(sock_server, &receivedMessage, sizeof( struct Messages), 0, (struct sockaddr *) &client_addr, &client_addr_len);
       if(bytes_recd < 0){
 		continue;
 	  }
@@ -137,7 +140,8 @@ int main(void) {
 			message.client_secret_code = htons(client_secret_code);
 			message.server_secret_code = htons(server_secret_code);
 			message.name_size = htons(strlen(Name));
-			strcpy(message.name,Name);
+			message.name[0]= '\0'; // make empty string
+			strcpy(message.name,Name); // then copy name
 			//write here
 			//printf("writing to file now");
 			successFlag = 1;
@@ -157,10 +161,11 @@ int main(void) {
 			// reset the flag
 			successFlag = 0;
 		}
-	  bytes_sent = sendto(sock_server, &message, sizeof(struct Messages), 0,
-               (struct sockaddr*) &client_addr, client_addr_len);
+	  bytes_sent = sendto(sock_server, &message, sizeof(struct Messages), 0,(struct sockaddr*) &client_addr, client_addr_len);
 		if(bytes_sent<0){
 			continue;
 		}
+		message = EmptyMessage;
+		receivedMessage = EmptyMessage;
    }
 }

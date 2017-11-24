@@ -15,12 +15,20 @@
 #define Secret_Code 4747
 #define Name "Aditya-Karmarkar"
 
+/**
+ * this is structure for message
+ */
 struct Messages {
    unsigned short client_secret_code;
    unsigned short server_secret_code;
    unsigned short name_size;
    char  name[80];
 };
+static const struct Messages EmptyMessage;
+/**
+ * Write to clientInfo file
+ * and stdout 
+ */
 void writeToFile(unsigned short port,struct Messages message,struct Messages receivedMessage){
   FILE * fp;
    //int i;
@@ -37,9 +45,9 @@ void writeToFile(unsigned short port,struct Messages message,struct Messages rec
    /* write to command lines */
      fprintf (stdout, "------------------\n");
 	   fprintf (stdout, "Port Number  %d\n",port); // this is port number
-   	   fprintf (stdout, "TCP Message sent:\t   %d\n",message.client_secret_code); // this is client's secret code
+   	   fprintf (stdout, "TCP Message sent:      %d\n",ntohs(message.client_secret_code)); // this is client's secret code
 	   fprintf (stdout, "TCP Message received:  %d, %d\n",ntohs(receivedMessage.client_secret_code),ntohs(receivedMessage.server_secret_code)); // this is message recived from TCP server
-   	   fprintf (stdout, "UDP Message sent:\t   %d, %d, %s\n",message.client_secret_code,message.server_secret_code,message.name); // this is message sent to UDP server
+   	   fprintf (stdout, "UDP Message sent:      %d, %d, %s\n",ntohs(message.client_secret_code),ntohs(message.server_secret_code),message.name); // this is message sent to UDP server
 	   fprintf (stdout, "UDP Message received:  %d, %d, %s\n",ntohs(receivedMessage.client_secret_code),ntohs(receivedMessage.server_secret_code),receivedMessage.name); // this is message received from Udp server
 	   fprintf (stdout, "------------------\n");
    
@@ -47,6 +55,9 @@ void writeToFile(unsigned short port,struct Messages message,struct Messages rec
    fclose (fp);
 
 }
+/**
+ * check if clientInfo.txt file exists or not
+ */
 int cfileexists(const char * filename){
     /* try to open file to read */
     FILE *file;
@@ -56,6 +67,11 @@ int cfileexists(const char * filename){
     }
     return 0;
 }
+/**
+ * this function makes sure that client won't contact same server again if it contacted that server before
+ * if client finds server's port in clientInfo file then return 1 meaning contacted before
+ * else reurn 0
+ */
 int client_exists(unsigned short port) {
    char cwd[1024];
    char file[1024];   
@@ -63,25 +79,37 @@ int client_exists(unsigned short port) {
        snprintf(file,sizeof(file),"%s%s",cwd,"/clientInfo.txt");
    else
        snprintf(file,sizeof(file),"%s%s","/usa/karma/proj2","/clientInfo.txt");   
+	if( cfileexists(file)){ // check whether clientInfo exists or not 
+		FILE *clientInfo = fopen(file, "r");
+		char line[6 + 6 + 80];  // maximum line size
+		char i;
 
-    FILE *clientInfo = fopen(file, "r");
-    char line[6 + 6 + 80];  // maximum line size
-    char i;
+		while (!feof(clientInfo)) {
+			// copy a line from file
+			for (i = 0; (line[i] = fgetc(clientInfo)) != '\n' && line[i] != EOF; i++);
 
-    while (!feof(clientInfo)) {
-        // copy a line from file
-        for (i = 0; (line[i] = fgetc(clientInfo)) != '\n' && line[i] != EOF; i++);
+			// check if the first number matches with the port
+			if (atoi(line) == (int)port) {
+				fclose(clientInfo);
+				return 1; // port found
+			}
+		}
 
-        // check if the first number matches with the port
-        if (atoi(line) == (int)port) {
-            fclose(clientInfo);
-            return 1;
-        }
-    }
-
-    fclose(clientInfo);
-    return 0;
+		fclose(clientInfo);
+	}
+	return 0; //port not found
 }
+
+/**
+ * This method receives the port number
+ * Based on the port number first it contact tcpserver
+ * 		Tcpserver sends Server secret code, based on server's secret code, client makes message for UDP server
+ * Client sends server_secret_Code to UDP server and waits for reply from udpserver
+ * UDP server sends server name, along with the client and server's secret code
+ * if client's secret code matches what server sent then, client saves information
+ * and closes connection
+ */
+
 int client(unsigned short server_port) {
 
    int sock_client;  /* Socket used by client */ 
@@ -131,15 +159,12 @@ int client(unsigned short server_port) {
             already been bound. */
 
    /* initialize server address information */
-	//printf("initializing");
-   //server_hostname = "localhost";
    if ((server_hp = gethostbyname(server_hostname)) == NULL) {
       //perror("Client: invalid server hostname");
       close(sock_client);
       return errno;
       //exit(1);
    }
-       
    /* Clear server address structure and initialize with server address */
    memset(&server_addr, 0, sizeof(server_addr));
    server_addr.sin_family = AF_INET;
@@ -147,8 +172,6 @@ int client(unsigned short server_port) {
                                     server_hp->h_length);
    server_addr.sin_port = htons(server_port);
    /* initialize server address information */
-
-
    
    if (connect(sock_client, (struct sockaddr *) &server_addr, 
                                     sizeof (server_addr)) < 0) {
@@ -157,31 +180,20 @@ int client(unsigned short server_port) {
       return errno;
       //exit(1);
    }
-
-   
+   /* make message */   
    message.client_secret_code = htons(client_secret_code);
    message.server_secret_code = htons(0); // we don't know the secret code so send 0;
    message.name_size= htons(0);
    message.name[0] = '\0'; // empty name field 
-   /* make message */
    /* send message */
-   bytes_sent = sendto(sock_client, &message, sizeof(struct Messages), 0,(struct sockaddr *) &server_addr, sizeof (server_addr));
+   bytes_sent = send(sock_client, &message, sizeof(struct Messages), 0);
+
+   //bytes_sent = sendto(sock_client, &message, sizeof(struct Messages), 0,(struct sockaddr *) &server_addr, sizeof (server_addr));
 
    /* get response from server */
-
-   //printf("Waiting for response from server...\n");
-   //bytes_recd = recvfrom(sock_client, receivedMessage, sizeof(receivedMessage), 0,
-	//		(struct sockaddr *) 0, (int *) 0) 
-   bytes_recd = recvfrom(sock_client, &receivedMessage, sizeof(struct Messages), 0,
-                (struct sockaddr *) 0, (int *) 0);
+   bytes_recd = recv(sock_client, &receivedMessage, sizeof(struct Messages), 0);
+   //bytes_recd = recvfrom(sock_client, &receivedMessage, sizeof(struct Messages), 0,(struct sockaddr *) 0, (int *) 0);
 	
-   /*
-    * if_ timeOut
-	* part-2 : will be expecting time out here as, there is possibility that no server is listed on current port 
-	* so if timeout occurs then, reinitialize and start sending message to new port
-   */
-   //printf("\nThe response from server is:\n");
-   //printf("%s\n\n", modifiedSentence);
 	/*
 	 * if _msg_received 
 	 * this means server is present and we've successfully contacted that server.
@@ -191,29 +203,25 @@ int client(unsigned short server_port) {
 	 *  ----2 byte---
 	 *   Client-code
 	 *   server-code
-	 * expected length will 4 bytes;
+	 *   name-size
+	 *   name
+	 * expected length will max 6 bytes;
 	 */
-	 
-	/* Make message */
-	message.client_secret_code = ntohs(receivedMessage.client_secret_code);
-    message.server_secret_code = ntohs(receivedMessage.server_secret_code);
-    message.name_size = ntohs(receivedMessage.name_size);	
-	strcpy(message.name, Name);
+	 /* TCP sent secret code, now client will be making message for udpserver, so make one*/
 	 
   /*
   * -------------------------------------------------TCP Client Ends Here --------------------------------------------------------*
   */
-   close (sock_client);
+   close (sock_client); // close tcp socket as we'll be contacting UDP server-socket
   /*
   * -------------------------------------------------UDP Client starts Here --------------------------------------------------------*
   */   
    /*
     * Now we need to communicate to UDP server
-	* so we need uddp client...
-	* sentence is ready to send so create udp client socket
+	* so we need udp client...
+	* and message is ready to send so create udp client socket
    */
-   
-      if ((sock_client = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0) {
+   if ((sock_client = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0) {
       //perror("Client: can't open datagram socket\n");
       return errno;
       //exit(1);
@@ -231,12 +239,6 @@ int client(unsigned short server_port) {
 
    client_port = 0;   /* This allows choice of any available local port */
 
-   /* Uncomment the lines below if you want to specify a particular 
-             local port: */
-   /*
-   printf("Enter port number for client: ");
-   scanf("%hu", &client_port);
-   */
 
    /* clear client address structure and initialize with client address */
    memset(&client_addr, 0, sizeof(client_addr));
@@ -260,16 +262,12 @@ int client(unsigned short server_port) {
 
    /* initialize server address information */
 
-   //printf("Enter hostname of server: ");
-   //scanf("%s", server_hostname);
    if ((server_hp = gethostbyname(server_hostname)) == NULL) {
       //perror("Client: invalid server hostname\n");
       close(sock_client);
 	  return errno;
       //exit(1);
    }
-   //printf("Enter port number for server: ");
-   //scanf("%hu", &server_port);
 
    /* Clear server address structure and initialize with server address */
    memset(&server_addr, 0, sizeof(server_addr));
@@ -277,33 +275,31 @@ int client(unsigned short server_port) {
    memcpy((char *)&server_addr.sin_addr, server_hp->h_addr,
                                     server_hp->h_length);
    server_addr.sin_port = htons(server_port);
-   // get message length
-   // message was created before closing the tcpclient 
-   // so just send the message.
+
+   	/* Make message */
    message.client_secret_code = htons(client_secret_code);
-   message.server_secret_code = htons(message.server_secret_code);
+   message.server_secret_code = htons(ntohs(receivedMessage.server_secret_code));
    message.name_size = htons(strlen(Name));
    strcpy(message.name, Name);
-   /* send message */
-   bytes_sent = sendto(sock_client, &message, sizeof(struct Messages), 0,
-            (struct sockaddr *) &server_addr, sizeof (server_addr));
-
+   /* send message to udp server*/
+   bytes_sent = sendto(sock_client, &message, sizeof(struct Messages), 0,(struct sockaddr *) &server_addr, sizeof (server_addr));
 
    // Wait for Reply...
-   //Reply is received 
-   bytes_recd = recvfrom(sock_client, &receivedMessage, sizeof(struct Messages), 0,
-                (struct sockaddr *) 0, (int *) 0);
-	
+   bytes_recd = recvfrom(sock_client, &receivedMessage, sizeof(struct Messages), 0,(struct sockaddr *) 0, (int *) 0);
+   //Reply is received 	
    // Now decode the message
-   // of secret code is matched
+   // if secret code is matched
    if(client_secret_code == ntohs(receivedMessage.client_secret_code)){
-        strcpy(message.name, receivedMessage.name);
-		message.server_secret_code = ntohs(receivedMessage.server_secret_code);
-		message.client_secret_code = ntohs(receivedMessage.client_secret_code);
-        message.name_size = ntohs(receivedMessage.name_size);		
+        //strcpy(message.name, receivedMessage.name);
+		//message.server_secret_code = ntohs(receivedMessage.server_secret_code);
+		//message.client_secret_code = ntohs(receivedMessage.client_secret_code);
+        //message.name_size = ntohs(receivedMessage.name_size);
+		writeToFile(server_port,message,receivedMessage);		
    }
-   writeToFile(server_port,message,receivedMessage);
+   //else skip and close client socket
     // save and close
+	message = EmptyMessage;
+	receivedMessage = EmptyMessage;
   /*
   * -------------------------------------------------UDP Client Ends Here --------------------------------------------------------*
   */
@@ -311,17 +307,27 @@ int client(unsigned short server_port) {
   close (sock_client);
   return 0;
 }
+/**
+* this is a main method which checks whether server port already been contacted or not
+* if not then tries to make connection
+* else skips the port number 
+*/
 int main(void){
   unsigned short 	i = 48000;
   for(i = 48000;i<49000;i++){
 	// if client doesn't exists in client info file and client discovery doesn't give any problem
-/*	if(client_exists(i)!=1 && client(i)!=0){
-		printf("error occur on port %d\n",i);
+	if(client_exists(i)!=1 ){
+		// if server wasn't contacted so check the port
+		if(client(i)!=0){
+		//printf("error occur on port %d\n",i);
+		}
 	}
-*/  //printf("%d\n",i);
+	/*  //printf("%d\n",i);
 	if( client(i)!=0){
 		//printf("error occur on port %d\n",i);
-	}else{
+	}*/
+	else{
+		//server already been contacted so skip 
 		continue;
 	}
   }

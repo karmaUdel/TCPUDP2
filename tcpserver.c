@@ -20,12 +20,18 @@
 #define Secret_Code 2447
 #define Name "Aditya-Karmarkar"
 
+
+/**
+ * this is structure for message
+ */
 struct Messages {
    unsigned short client_secret_code;
    unsigned short server_secret_code;
    unsigned short name_size;
    char  name[80];
 };
+static const struct Messages EmptyMessage;
+
 int main(void) {
 
    int sock_server;  /* Socket on which server listens to clients */
@@ -99,13 +105,13 @@ int main(void) {
       }
  
       /* receive the message */
-
-      bytes_recd = recvfrom(sock_connection, &receivedMessage, sizeof(struct Messages), 0,
-                (struct sockaddr *) &client_addr, &client_addr_len);
+		bytes_recd = recv(sock_connection, &receivedMessage, sizeof(struct Messages), 0);
+      //bytes_recd = recvfrom(sock_connection, &receivedMessage, sizeof(struct Messages), 0,(struct sockaddr *) &client_addr, &client_addr_len);
 	
       if (bytes_recd > 0){
         /* prepare the message to send */
 		 message.server_secret_code = htons(server_secret_code);
+		 //printf("%d\n", htons(server_secret_code));
          client_secret_code = ntohs(receivedMessage.client_secret_code);
 		 //printf("Client Secret code %d",client_secret_code);
 		 /* send message */
@@ -113,10 +119,12 @@ int main(void) {
 		 message.name_size = htons(0);
 		 message.name[0]='\0'; //send empty string
 		 //send message
-		bytes_sent = sendto(sock_connection, &message, sizeof(struct Messages), 0,(struct sockaddr *) &client_addr, sizeof (client_addr));
+		bytes_sent = send(sock_connection, &message, sizeof(struct Messages), 0);
+		//bytes_sent = sendto(sock_connection, &message, sizeof(struct Messages), 0,(struct sockaddr *) &client_addr, sizeof (client_addr));
 
       }
-
+		message = EmptyMessage;
+		receivedMessage = EmptyMessage;
       /* close the socket */
       close(sock_connection);
 
