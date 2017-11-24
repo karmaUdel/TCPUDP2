@@ -1,0 +1,14 @@
+CC= /usr/bin/gcc
+all:	client tcpserver udpserver
+
+client: client.c;
+	${CC} client.c -o client
+
+tcpserver: tcpserver.c;
+	${CC} tcpserver.c -o tcpserver
+
+udpserver: udpserver.c;
+	${CC} udpserver.c -o udpserver
+
+clean:
+	rm client tcpserver udpserver

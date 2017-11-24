@@ -23,6 +23,7 @@
 struct Messages {
    unsigned short client_secret_code;
    unsigned short server_secret_code;
+   unsigned short name_size;
    char  name[80];
 };
 int main(void) {
@@ -39,21 +40,17 @@ int main(void) {
                                         stores client address */
    unsigned int client_addr_len;  /* Length of client address structure */
 
-   char sentence[STRING_SIZE];  /* receive message */
-   char modifiedSentence[STRING_SIZE]; /* send message */
-   unsigned int msg_len;  /* length of message */
    int bytes_sent, bytes_recd; /* number of bytes sent or received */
    unsigned int i;  /* temporary loop variable */
    unsigned short client_secret_code;
    unsigned short server_secret_code = Secret_Code;
-   //unsigned char client_code[2]; // this will hold 2 byte client_secret_code
-    struct Messages message; // this is structure that holds message sent by server
-	struct Messages receivedMessage; // this is a structure that holds message received from client
+   struct Messages message; // this is structure that holds message sent by server
+   struct Messages receivedMessage; // this is a structure that holds message received from client
    
    /* open a socket */
 
    if ((sock_server = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0) {
-      perror("Server: can't open stream socket");
+      //perror("Server: can't open stream socket");
       exit(1);                                                
    }
 
@@ -71,7 +68,7 @@ int main(void) {
 
    if (bind(sock_server, (struct sockaddr *) &server_addr,
                                     sizeof (server_addr)) < 0) {
-      perror("Server: can't bind to local address");
+      //perror("Server: can't bind to local address");
       close(sock_server);
       exit(1);
    }                     
@@ -79,11 +76,11 @@ int main(void) {
    /* listen for incoming requests from clients */
 
    if (listen(sock_server, 50) < 0) {    /* 50 is the max number of pending */
-      perror("Server: error on listen"); /* requests that will be queued */
+      //perror("Server: error on listen"); /* requests that will be queued */
       close(sock_server);
       exit(1);
    }
-   printf("I am here to listen ... on port %hu\n\n", server_port);
+   //printf("I am here to listen ... on port %hu\n\n", server_port);
   
    client_addr_len = sizeof (client_addr);
 
@@ -96,7 +93,7 @@ int main(void) {
                      /* The accept function blocks the server until a
                         connection request comes from a client */
       if (sock_connection < 0) {
-         perror("Server: accept() error\n"); 
+         //perror("Server: accept() error\n"); 
          close(sock_server);
          exit(1);
       }
@@ -110,9 +107,10 @@ int main(void) {
         /* prepare the message to send */
 		 message.server_secret_code = htons(server_secret_code);
          client_secret_code = ntohs(receivedMessage.client_secret_code);
-		 printf("Client Secret code %d",client_secret_code);
+		 //printf("Client Secret code %d",client_secret_code);
 		 /* send message */
 		 message.client_secret_code = htons(client_secret_code);
+		 message.name_size = htons(0);
 		 message.name[0]='\0'; //send empty string
 		 //send message
 		bytes_sent = sendto(sock_connection, &message, sizeof(struct Messages), 0,(struct sockaddr *) &client_addr, sizeof (client_addr));
