@@ -17,7 +17,7 @@
    incoming messages from clients. You should change this to a different
    number to prevent conflicts with others in the class. */
 
-#define SERV_UDP_PORT 48500
+#define SERV_UDP_PORT 48004
 #define Secret_Code 2447
 #define Name "Aditya-Karmarkar"
 
@@ -62,6 +62,12 @@ void writeToFile(struct Messages message,struct Messages receivedMessage){
 
 }
 
+int getmessageSize(struct Messages message){
+	int length = 0;
+	
+	length =  sizeof(message.client_secret_code) +  sizeof(message.server_secret_code) + sizeof(message.name_size) + (int)ntohs(message.name_size);
+	return length;
+}
 int main(void) {
 	srand(time(0)); // set seed for random number
    int sock_server;  /* Socket on which server listens to clients */
@@ -119,8 +125,8 @@ int main(void) {
 	* wait for incoming requests
    */
    for (;;) {
-
-      bytes_recd = recvfrom(sock_server, &receivedMessage, sizeof( struct Messages), 0, (struct sockaddr *) &client_addr, &client_addr_len);
+	  receivedMessage = EmptyMessage;
+      bytes_recd = recvfrom(sock_server, &receivedMessage, sizeof(struct Messages), 0, (struct sockaddr *) &client_addr, &client_addr_len); //expect full 86 bytes
       if(bytes_recd < 0){
 		continue;
 	  }
@@ -161,7 +167,7 @@ int main(void) {
 			// reset the flag
 			successFlag = 0;
 		}
-	  bytes_sent = sendto(sock_server, &message, sizeof(struct Messages), 0,(struct sockaddr*) &client_addr, client_addr_len);
+	  bytes_sent = sendto(sock_server, &message, getmessageSize(message), 0,(struct sockaddr*) &client_addr, client_addr_len); //send limited bytes
 		if(bytes_sent<0){
 			continue;
 		}

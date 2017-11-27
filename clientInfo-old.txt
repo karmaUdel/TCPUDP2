@@ -6,6 +6,3 @@
 48690,14668,zhi-zhou
 48727,12727,Baegwang-Shin
 48833,33130,ehsan-memary
-48738,58588,ye-fan
-48380,14716,teja-parlapalli+
-48555,55555,Jansher-Khan

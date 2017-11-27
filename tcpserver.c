@@ -16,7 +16,7 @@
    incoming requests from clients. You should change this to a different
    number to prevent conflicts with others in the class. */
 
-#define SERV_TCP_PORT 48500
+#define SERV_TCP_PORT 48004
 #define Secret_Code 2447
 #define Name "Aditya-Karmarkar"
 
@@ -32,6 +32,13 @@ struct Messages {
 };
 static const struct Messages EmptyMessage;
 
+int getmessageSize(struct Messages message){
+	int length = 0;
+	
+	length =  sizeof(message.client_secret_code) +  sizeof(message.server_secret_code) + sizeof(message.name_size) + (int)ntohs(message.name_size);
+	//printf("TCP :%d \n", length);
+	return length;
+}
 int main(void) {
 
    int sock_server;  /* Socket on which server listens to clients */
@@ -105,10 +112,15 @@ int main(void) {
       }
  
       /* receive the message */
-		bytes_recd = recv(sock_connection, &receivedMessage, sizeof(struct Messages), 0);
+	  		receivedMessage = EmptyMessage;
+
+		bytes_recd = recv(sock_connection, &receivedMessage, sizeof(struct Messages), 0); //expect all 86 bytes
+		//printf("client_secret %d\n",htons(receivedMessage.client_secret_code));
+		//printf("server_secret %d\n",htons(receivedMessage.server_secret_code));
+		//printf("size %d\n",htons(receivedMessage.name_size));
+		//printf("Name %s\n",receivedMessage.name);
       //bytes_recd = recvfrom(sock_connection, &receivedMessage, sizeof(struct Messages), 0,(struct sockaddr *) &client_addr, &client_addr_len);
-	
-      if (bytes_recd > 0){
+	  if (bytes_recd > 0){
         /* prepare the message to send */
 		 message.server_secret_code = htons(server_secret_code);
 		 //printf("%d\n", htons(server_secret_code));
@@ -119,7 +131,7 @@ int main(void) {
 		 message.name_size = htons(0);
 		 message.name[0]='\0'; //send empty string
 		 //send message
-		bytes_sent = send(sock_connection, &message, sizeof(struct Messages), 0);
+		bytes_sent = send(sock_connection, &message, getmessageSize(message), 0); //send limited bytes
 		//bytes_sent = sendto(sock_connection, &message, sizeof(struct Messages), 0,(struct sockaddr *) &client_addr, sizeof (client_addr));
 
       }

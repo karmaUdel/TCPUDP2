@@ -67,14 +67,6 @@ int cfileexists(const char * filename){
     }
     return 0;
 }
-
-int getmessageSize(struct Messages message){
-	int length = 0;
-	
-	length =  sizeof(message.client_secret_code) +  sizeof(message.server_secret_code) + sizeof(message.name_size) + (int)ntohs(message.name_size);
-	//printf("Client :%d\n", length);
-	return length;
-}
 /**
  * this function makes sure that client won't contact same server again if it contacted that server before
  * if client finds server's port in clientInfo file then return 1 meaning contacted before
@@ -89,7 +81,7 @@ int client_exists(unsigned short port) {
        snprintf(file,sizeof(file),"%s%s","/usa/karma/proj2","/clientInfo.txt");   
 	if( cfileexists(file)){ // check whether clientInfo exists or not 
 		FILE *clientInfo = fopen(file, "r");
-		char line[6 + 6 + 80];  // maximum line size it is of form 65535,65535,XXXXXXXXX....
+		char line[6 + 6 + 80];  // maximum line size
 		char i;
 
 		while (!feof(clientInfo)) {
@@ -194,16 +186,12 @@ int client(unsigned short server_port) {
    message.name_size= htons(0);
    message.name[0] = '\0'; // empty name field 
    /* send message */
-   	//	printf("client_secret %d\n",htons(message.client_secret_code));
-	//	printf("server_secret %d\n",htons(message.server_secret_code));
-	//	printf("size %d\n",htons(message.name_size));
-	//	printf("Name %s\n",message.name);
-   bytes_sent = send(sock_client, &message, getmessageSize(message), 0); //send limited bytes
+   bytes_sent = send(sock_client, &message, sizeof(struct Messages), 0);
 
    //bytes_sent = sendto(sock_client, &message, sizeof(struct Messages), 0,(struct sockaddr *) &server_addr, sizeof (server_addr));
 
    /* get response from server */
-   bytes_recd = recv(sock_client, &receivedMessage, sizeof(struct Messages), 0); //expect full message
+   bytes_recd = recv(sock_client, &receivedMessage, sizeof(struct Messages), 0);
    //bytes_recd = recvfrom(sock_client, &receivedMessage, sizeof(struct Messages), 0,(struct sockaddr *) 0, (int *) 0);
 	
 	/*
@@ -294,10 +282,10 @@ int client(unsigned short server_port) {
    message.name_size = htons(strlen(Name));
    strcpy(message.name, Name);
    /* send message to udp server*/
-   bytes_sent = sendto(sock_client, &message, getmessageSize(message), 0,(struct sockaddr *) &server_addr, sizeof (server_addr)); // send limited bytes
- 
+   bytes_sent = sendto(sock_client, &message, sizeof(struct Messages), 0,(struct sockaddr *) &server_addr, sizeof (server_addr));
+
    // Wait for Reply...
-   bytes_recd = recvfrom(sock_client, &receivedMessage, sizeof(struct Messages), 0,(struct sockaddr *) 0, (int *) 0); //expect message of full 86 bytes
+   bytes_recd = recvfrom(sock_client, &receivedMessage, sizeof(struct Messages), 0,(struct sockaddr *) 0, (int *) 0);
    //Reply is received 	
    // Now decode the message
    // if secret code is matched
@@ -328,11 +316,11 @@ int main(void){
   unsigned short 	i = 48000;
   for(i = 48000;i<49000;i++){
 	// if client doesn't exists in client info file and client discovery doesn't give any problem
-	//printf("%d\n",i);
 	if(client_exists(i)!=1 ){
 		// if server wasn't contacted so check the port
+		printf("checking port :%d\n",i);
 		if(client(i)!=0){
-		//printf("error occur on port %d\n",i);
+			printf("error occur on port %d\n",i);
 		}
 	}
 	/*  //printf("%d\n",i);
