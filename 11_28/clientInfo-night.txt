@@ -16,6 +16,3 @@
 48555,55555,Jansher-Khan
 48116,11116,yuyan-liu
 48277,27947,hamza-lemsaddek
-48013,45645,xudong_xue`WAU~+
-48233,22001,George-W-Bush
-48690,14668,zhi-zhou

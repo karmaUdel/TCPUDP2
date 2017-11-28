@@ -1,0 +1,30 @@
+Script started on Tue 28 Nov 2017 11:24:41 AM EST
+karma@cisc650:~/proj2$ ./c[K[K[Kmake r[Kclient
+make: `client' is up to date.
+karma@cisc650:~/proj2$ make runClient
+./client
+------------------
+Port Number  48013
+TCP Message sent:      4747
+TCP Message received:  4747, 45645
+UDP Message sent:      4747, 45645, Aditya-Karmarkar
+UDP Message received:  4747, 45645, xudong_xue`WAU~+
+------------------
+------------------
+Port Number  48233
+TCP Message sent:      4747
+TCP Message received:  4747, 22001
+UDP Message sent:      4747, 22001, Aditya-Karmarkar
+UDP Message received:  4747, 22001, George-W-Bush
+------------------
+------------------
+Port Number  48690
+TCP Message sent:      4747
+TCP Message received:  4747, 14668
+UDP Message sent:      4747, 14668, Aditya-Karmarkar
+UDP Message received:  4747, 14668, zhi-zhou
+------------------
+karma@cisc650:~/proj2$ exit
+exit
+
+Script done on Tue 28 Nov 2017 11:26:28 AM EST
