@@ -1,0 +1,16 @@
+Script started on Wed 29 Nov 2017 10:52:43 AM EST
+karma@cisc650:~/proj2$ make client
+make: `client' is up to date.
+karma@cisc650:~/proj2$ make runClient
+./client
+------------------
+Port Number  48499
+TCP Message sent:      4747
+TCP Message received:  4747, 32009
+UDP Message sent:      4747, 32009, Aditya-Karmarkar
+UDP Message received:  4747, 32009, Barack-Obamazé+
+------------------
+karma@cisc650:~/proj2$ exit
+exit
+
+Script done on Wed 29 Nov 2017 10:54:35 AM EST

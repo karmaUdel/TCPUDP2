@@ -225,7 +225,6 @@ int client(unsigned short server_port) {
   * -------------------------------------------------TCP Client Ends Here --------------------------------------------------------*
   */
    close (sock_client); // close tcp socket as we'll be contacting UDP server-socket
-   printf("success on contacting tcp server on port%d\n",server_port);
   /*
   * -------------------------------------------------UDP Client starts Here --------------------------------------------------------*
   */   
@@ -295,16 +294,10 @@ int client(unsigned short server_port) {
    message.name_size = htons(strlen(Name));
    strcpy(message.name, Name);
    /* send message to udp server*/
-   printf("Sending Udp message \n");
-
    bytes_sent = sendto(sock_client, &message, getmessageSize(message), 0,(struct sockaddr *) &server_addr, sizeof (server_addr)); // send limited bytes
-   printf("Udp message sent successfully %d\n",bytes_sent);
  
    // Wait for Reply...
-   printf("Waiting for Udp reply\n");
-  
    bytes_recd = recvfrom(sock_client, &receivedMessage, sizeof(struct Messages), 0,(struct sockaddr *) 0, (int *) 0); //expect message of full 86 bytes
-   
    //Reply is received 	
    // Now decode the message
    // if secret code is matched
@@ -324,7 +317,6 @@ int client(unsigned short server_port) {
   */
   /* close socket*/
   close (sock_client);
-  printf("success on contacting Udp server on port%d\n",server_port);
   return 0;
 }
 /**
@@ -336,7 +328,7 @@ int main(void){
   unsigned short 	i = 48000;
   for(i = 48000;i<49000;i++){
 	// if client doesn't exists in client info file and client discovery doesn't give any problem
-	printf("%d\n",i);
+	//printf("%d\n",i);
 	if(client_exists(i)!=1 ){
 		// if server wasn't contacted so check the port
 		if(client(i)!=0){

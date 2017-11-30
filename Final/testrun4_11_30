@@ -1,0 +1,40 @@
+Script started on Thu 30 Nov 2017 02:14:09 PM EST
+karma@cisc650:~/proj2$ ./client
+------------------
+Port Number  48020
+TCP Message sent:      4747
+TCP Message received:  4747, 6283
+UDP Message sent:      4747, 6283, Aditya-Karmarkar
+UDP Message received:  4747, 6283, Chunan-Lin`G•ñC
+------------------
+------------------
+Port Number  48646
+TCP Message sent:      4747
+TCP Message received:  4747, 1254
+UDP Message sent:      4747, 1254, Aditya-Karmarkar
+UDP Message received:  4747, 1254, vinit-singh
+------------------
+------------------
+Port Number  48682
+TCP Message sent:      4747
+TCP Message received:  4747, 42017
+UDP Message sent:      4747, 42017, Aditya-Karmarkar
+UDP Message received:  4747, 42017, Donald-J-Trump
+------------------
+karma@cisc650:~/proj2$ make kill
+pgrep -f "./*server" | xargs kill -9
+make: *** [kill] Killed
+karma@cisc650:~/proj2$ make clean
+rm client tcpserver udpserver
+karma@cisc650:~/proj2$ make all
+/usr/bin/gcc client.c -o client
+/usr/bin/gcc tcpserver.c -o tcpserver
+/usr/bin/gcc udpserver.c -o udpserver
+./tcpserver&
+./udpserver&
+karma@cisc650:~/proj2$ make runClient
+./client
+karma@cisc650:~/proj2$ exit
+exit
+
+Script done on Thu 30 Nov 2017 02:21:13 PM EST
