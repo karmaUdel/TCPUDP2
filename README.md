@@ -32,3 +32,5 @@ Presentation of file inside zip file
     Makefile
     ReadMe
 
+
+For more details, lookup files under "/usa/karma/proj2" on "cisc650.cis.udel.edu" server.
