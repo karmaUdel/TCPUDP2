@@ -1,5 +1,5 @@
 CC= /usr/bin/gcc
-all:	client tcpserver udpserver runServer
+all:	client tcpserver udpserver runServer runClient
 
 endScript:
 	exit
